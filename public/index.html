@@ -1,0 +1,257 @@
+<!DOCTYPE HTML>
+<HTML>
+    <head>
+        <title>
+            Chat
+        </title>
+    </head>
+    <body>
+        <input id='nick'>
+        <br>
+        <input id='message'>
+        <button id='send'>Send</button>
+        <br>New room<br>
+        <input id='newRoom'>
+        <button id='create'>Create</button>
+        <select id='chatRoomSelect'></select>
+        <div id='chat'></div>
+    <script>
+        let messageId  = 0;
+        let roomId  = 0;
+        // let val = ''
+        // let room = '3';
+
+        async function getMessages(messageId){
+            let response = await fetch(`http://localhost:8000/getMessages/${chatRoomSelect.value}/${messageId}`, {
+                    method: 'GET',  
+                    headers: {
+                      'Accept': 'application/json',
+                      'Content-Type': 'application/json'
+                    }})
+            let data = await response.json()
+            return data;
+        }
+
+        let delay = ms => new Promise(r => setTimeout(r, ms))
+
+        function drawMessages(messages){
+            for (let message of messages){
+                let element = document.createElement('div');
+                let button = document.createElement('button');
+                element.innerHTML = `<b>${message.nick}</b>: ${message.text}`;
+                button.innerHTML = '+'
+                chat.appendChild(element)
+                element.appendChild(button)
+                button.onclick = ()=>{
+                    let answText = document.createElement('input')
+                    // <input id='message'>
+                    answSend = document.createElement('button')
+                    answSend.innerHTML = 'Send'
+                    answSend.id = 'comment'
+                    answSend.onclick = () => {
+                            fetch("http://localhost:8000/addMessage/" + chatRoomSelect.value, {
+                                method: 'POST', 
+                                body: JSON.stringify({nick: ' Commented', message: answText.value}),  
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'Content-Type': 'application/json'
+                                }
+                            })
+                            .then(() => message.value = '')
+                            .then(checkMessages)
+                    }
+                    // answDel = document.createElement('input')
+                    chat.appendChild(answText)
+                    chat.appendChild(answSend)
+
+
+                // <button id='send'>Send</button>
+                }
+            }
+        }
+        
+
+        // checkChatrooms
+        async function checkMessages(){
+            newMessages = await getMessages(messageId);
+            if (newMessages.length){
+                messageId = newMessages[newMessages.length -1].id;
+                drawMessages(newMessages)
+            }
+            console.log(newMessages)
+        }
+
+        // async function checkChatrooms(roomValue, chtRom){
+        async function checkChatrooms(){
+            newChatRoom = await getChatRoom();
+            // for (let key of newChatRoom){
+console.log(newChatRoom);
+
+                // console.log(key);
+            let option = document.createElement('option')
+                // roomId = option.value = data.id
+                option.value = newChatRoom.id
+                option.innerHTML = newChatRoom.title;
+                chatRoomSelect.appendChild(option);
+            // }
+                
+                // room = roomValue;
+        }
+
+
+async function getChatRoom(){
+    // console.log(roomId);
+    // for (en in chtRom){
+    //     console.log(en);
+    // }
+            // let response = await fetch("/getChatRooms/"+ roomId+1, {
+            let response = await fetch("http://localhost:8000/getChatRooms/"+ newRoom.value, {
+                    method: 'GET',  
+                    headers: {
+                      'Accept': 'application/json',
+                      'Content-Type': 'application/json'
+                    }})
+// delay(2000);
+                    let data = await response.json()
+console.log(data);
+
+                // roomId++
+                    // return data
+
+                    return data[0]
+
+
+            // for (let key of data){
+            // // for(key in data){
+            //     console.log(key);
+            // }
+            // // console.log(data);
+            //     // roomId = data[0].id;
+            // let option = document.createElement('option')
+            //     // roomId = option.value = data.id
+            //     option.innerHTML = data.title;
+            //     chatRoomSelect.appendChild(option);
+                
+            
+            
+            //     room = roomValue;
+
+
+}
+
+
+        async function getChatRooms(first, roomValue){
+            let response = await fetch("http://localhost:8000/getChatRooms/", {
+                    method: 'GET',  
+                    headers: {
+                      'Accept': 'application/json',
+                      'Content-Type': 'application/json'
+                    }})
+            let data = await response.json()
+            console.log(data);
+            
+            
+            for (let chatRoom of data){
+                // console.log('chatRoom '+chatRoom.title);
+                // console.log('roomValue '+roomValue);
+                // console.log('room '+room);
+                    // if(chatRoom.title === room ){//
+                    // if(chatRoom+1 == data.length ){
+                    //     console.log(chatRoom.title+' equal '+newRoom.value);
+                    //     console.log('work!!!!!!!!!!!!!!!!');
+                    //     let option = document.createElement('option')
+                    //     option.value = chatRoom.id
+                    //     option.innerHTML = chatRoom.title;
+                    //     chatRoomSelect.appendChild(option)
+                    // }
+if (roomId< chatRoom.id)roomId =chatRoom.id
+// console.log('in for ' + chatRoom +' '+roomId);
+                    let option = document.createElement('option')
+
+                option.value = chatRoom.id
+                option.innerHTML = chatRoom.title;
+                chatRoomSelect.appendChild(option);
+
+                // else if (first == 0){
+                //     console.log('first '+newRoom.value);
+                //     let option = document.createElement('option')
+                //     option.value = chatRoom.id
+                //     option.innerHTML = chatRoom.title;
+                //     chatRoomSelect.appendChild(option);
+                // }
+                
+            }
+
+            // roomId = data.length -1;
+            console.log('fdxfgf '+roomId);
+            // room = roomValue;
+
+        }
+
+
+        async function run (){
+            for (i=0;;i++) {
+                // await getChatRooms(i);
+                
+                if (i == 0)await getChatRooms(i)
+                // await checkChatrooms()
+                console.log(i);
+                await checkMessages();
+                await delay(2000);
+            }
+        }
+
+        run();
+
+        create.onclick = () => {
+            for(let key of chatRoomSelect.options){
+                if(key.innerText == newRoom.value){
+                    console.log(key.innerText);
+                    // val = key.innerText;
+                    return 'hgvhkgvkhgv'
+                }
+
+
+            }
+
+            if (newRoom.value != '' ){
+            // if (newRoom.value != '' && !val){
+                // roomIsEmpty = true;
+                // fetch("/addChatroom/" + roomId+1, {method: 'POST', 
+                fetch("http://localhost:8000/addChatroom", {
+                    method: 'POST',
+                    body: JSON.stringify({title: newRoom.value}),  
+                    headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                    }
+                })
+                // .then(checkChatrooms(newRoom.value))
+                .then(checkChatrooms)
+                .then(() => newRoom.value = '')
+
+            }
+            
+        }
+        send.onclick = () => {
+                fetch("/localhost:8000/addMessage/" + chatRoomSelect.value, {
+                    method: 'POST', 
+                    body: JSON.stringify({nick: nick.value, message: message.value}),  
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(() => message.value = '')
+                .then(checkMessages)
+        }
+        
+
+        chatRoomSelect.onchange = () => {
+            chat.innerHTML = '';
+            messageId  = 0;
+        }
+
+    </script>
+    </body>
+</HTML>
